@@ -8,6 +8,8 @@ function NS = Newton_factorization(A,A_tr,Q,x,z,delta,rho,pos_vars,free_vars)
 % Factorization Method
   % --------------------
   % 1: augmented system, LDL' factorization.
+% 
+% Author: Spyridon Pougkakiotis.
 % ==================================================================================================================== %
 [m, n] = size(A);
 NS = struct();

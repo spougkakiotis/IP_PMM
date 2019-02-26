@@ -5,6 +5,8 @@ function [dx,dy,dz,instability] = Newton_backsolve(NS,res_p,res_d,res_mu,pos_var
 % OUTPUT:
 %  [dx,dy,dz,instability] = newtonsolve(NS,res_p,res_d,res_mu,A,A_tr,pos_vars,free_vars)
 %  i.e. the Newton direction and a boolean parameter indicating critical ill-conditioning.
+%
+% Author: Spyridon Pougkakiotis.
 % ==================================================================================================================== %
 m = size(res_p,1);
 n = size(res_d,1);

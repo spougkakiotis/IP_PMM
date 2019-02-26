@@ -15,9 +15,10 @@ function [D,D_L] = Scale_the_problem(A,scale_option,direction)
 % The optional parameter: direction. This parameter can take 3 values:
 %   (i)   direction = 'r', right scaling (default).
 %   (ii)  direction = 'l', left scaling.
-%   (iii) direction = 'b', both left and right scaling. 
 % For more information about these scaling choices, the reader is refered to:
 %                                   https://en.wikibooks.org/wiki/GLPK/Scaling
+%
+% Author: Spyridon Pougkakiotis.
 % ==================================================================================================================== %
     if (nargin < 2 || isempty(scale_option))
         scale_option = 1; % Set geometric scaling as the default option.
@@ -56,23 +57,6 @@ function [D,D_L] = Scale_the_problem(A,scale_option,direction)
                 end
             else           
                 D(j) = 1; % Extreme case, where one column is all zeros.
-            end
-        end
-        if (direction == 'b')
-            D_L = zeros(size(A_t,2),1);
-            for j = 1:size(A_t,2)
-                rows = pos_A_t(:,j) > 0; % Find all non-zero elements for this column.
-                if (size(rows,1) >= 1)
-                    maximum = max(pos_A_t(rows,j));
-                    minimum = min(pos_A_t(rows,j));
-                    if (maximum*minimum > 10^(-12))
-                        D(j) = 1/sqrt(maximum*minimum);
-                    else
-                        D(j) = 1;
-                    end
-                else
-                    D_L(j) = 1; % Extreme case, where one column is all zeros.
-                end
             end
         end
     elseif (scale_option == 2) % Equilibrium scaling (applied on columns for efficiency).

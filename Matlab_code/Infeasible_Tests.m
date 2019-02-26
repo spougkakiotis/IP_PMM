@@ -2,13 +2,13 @@
 clear all;
 clc;
 %The path on which all the netlib problems lie
- Netlib_path = './';   
+ Netlib_path = './Infeasible_problems';   
 %Finds all the Netlib problems and stores their names in a struct
 d = dir(fullfile(Netlib_path,'*.mat')); 
 
 
 %Open the file to write the results
-fileID = fopen('Netlib_tabular_format_final_results.txt','a+');
+fileID = fopen('Netlib_infeasible_tabular_format_final_results.txt','a+');
 fields = {'A','obj','sense','rhs','lb','ub','vtype','modelname','varnames','constrnames'};
 total_iters = 0;
 total_time = 0;
@@ -17,7 +17,7 @@ scaling_mode = 3;
 pc_mode = true;
 tol = 1e-6;
 %Each indice k=1..num_of_netlib_files gives the name of each netlib problem through d(i).name
-for k = 1:1
+for k = 1:29
     load(fullfile(Netlib_path,d(k).name))
     c = Problem.aux.c;
     A = Problem.A;
@@ -53,7 +53,7 @@ for k = 1:1
     end
     time = 0;
     tic;
-    [x,y,z,opt,iter] = IP_PMM(c,A,Q,b,free_variables,tol,200,pc_mode,2); 
+    [x,y,z,opt,iter] = IP_PMM(c,A,Q,b,free_variables,tol,150,pc_mode,1); 
     total_iters = total_iters + iter;
     time = time + toc;
     total_time = total_time + time;
@@ -61,8 +61,10 @@ for k = 1:1
     if (opt == 1)
        fprintf(fileID,'%s & %d & %d & opt  \n',Problem.name, iter, time); 
        fprintf(fileID,'The optimal solution objective is %d.\n',obj_val);
-    else
+    elseif (opt == 0)
        fprintf(fileID,'%s & %d & %d & non-opt \n',Problem.name, iter, time); 
+    elseif (opt == 2 || opt == 3)
+       fprintf(fileID,'%s & %d & %d & primal-dual infeasible \n',Problem.name, iter, time); 
     end
     
 end

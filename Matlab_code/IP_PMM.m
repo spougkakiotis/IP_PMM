@@ -33,6 +33,8 @@ function [x,y,z,opt,iter] = IP_PMM(c,A,Q,b,free_variables,tol,maxit,pc,printleve
 %         z: dual slack variables
 %         opt: true if problem was solved to optimality, false if problem not solved or found infeasible.
 %         iter: numeber of iterations to termination.
+%
+% Author: Spyridon Pougkakiotis.
 % ==================================================================================================================== %
 
 % ==================================================================================================================== %
@@ -113,11 +115,6 @@ end
 if (issparse(x))  x = full(x); end
 if (issparse(z))  z = full(z); end
 if (issparse(y))  y = full(y); end
-
-warn_stat = warning;
-warning('off','all');
-reg_limit = 5*10^(-12);
-warning(warn_stat);
 % ==================================================================================================================== %
 
 % ==================================================================================================================== %  
@@ -149,10 +146,13 @@ end
 max_tries = 10; % Maximum number of times before exiting with an ill-conditioning message.
 mu_prev = 0;
 
-delta = 8;     % Initial dual regularization value.
-rho = 8;       % Initial primal regularization value.
-lambda = y;     % Initial estimate of the Lagrange multipliers.
-zeta = x;       % Initial estimate of the primal optimal solution.
+delta = 8;            % Initial dual regularization value.
+rho = 8;              % Initial primal regularization value.
+lambda = y;           % Initial estimate of the Lagrange multipliers.
+zeta = x;             % Initial estimate of the primal optimal solution.
+no_dual_update = 0;   % Primal infeasibility detection counter.
+no_primal_update = 0; % Dual infeasibility detection counter.
+reg_limit = 5*10^(-12);
 % ==================================================================================================================== %
 
 while (iter < maxit)
@@ -190,16 +190,17 @@ while (iter < maxit)
         opt = 1;
         break;
     end
-    if (mu < tol && norm(res_p)/(1+norm(b)) <tol  && norm(y-lambda)/m > 10^8)
-        fprintf('The problem is primal infeasible\n');
-        opt = 0;
+    if (  (norm(y-lambda)> 10^10 && norm(res_p) < tol && no_dual_update > 5) || no_dual_update > 40 ) 
+        fprintf('The primal-dual problem is infeasible\n');
+        opt = 2;
         break;
     end
-    if (mu < tol && norm(res_p)/(1+norm(c)) <tol && norm(x-zeta)/n > 10^8)
-        fprintf('The problem is dual infeasible\n');
-        opt = 0;
+    if ( (norm(x-zeta)> 10^10 && norm(res_d) < tol && no_primal_update > 5) || no_primal_update > 40)
+        fprintf('The primal-dual problem is infeasible\n');
+        opt = 3;
         break;
     end 
+    
     % ================================================================================================================ %
     iter = iter+1;
     % ================================================================================================================ %
@@ -234,6 +235,8 @@ while (iter < maxit)
                 rho = rho*100;
                 iter = iter -1;
                 retry = retry + 1;
+                no_primal_update = 0;
+                no_dual_update = 0;
                 continue;
             else
                 fprintf('The system matrix is too ill-conditioned.\n');
@@ -259,6 +262,8 @@ while (iter < maxit)
                 rho = rho*100;
                 iter = iter -1;
                 retry_p = retry_p + 1;
+                no_primal_update = 0;
+                no_dual_update = 0;
                 continue;
             else
                 fprintf('The system matrix is too ill-conditioned.\n');
@@ -303,6 +308,8 @@ while (iter < maxit)
                 iter = iter -1;
                 retry_c = retry_c + 1;
                 mu = mu_prev;
+                no_primal_update = 0;
+                no_dual_update = 0;
                 continue;
             else
                 fprintf('The system matrix is too ill-conditioned.\n');
@@ -338,6 +345,7 @@ while (iter < maxit)
     else
         alpha_x = 1;         % If we have no inequality constraints, Newton method is exact -> Take full step.
         alpha_z = 1;
+        tau = 0.995;
     end
     % ================================================================================================================ %    
     
@@ -361,33 +369,37 @@ while (iter < maxit)
     % ---------------------------------------------------------------------------------------------------------------- %
     new_nr_res_p = b-A*x;
     new_nr_res_d = c + Q*x - A_tr*y - z;
-    if (sigmamax*norm(nr_res_p) > norm(new_nr_res_p))
+    if (0.95*norm(nr_res_p) > norm(new_nr_res_p))
         lambda = y;
         if (num_of_pos_vars > 0)
             delta = max(reg_limit,delta*(1-mu_rate));  
         else
             delta = max(reg_limit,delta*0.1);               % In this case, IPM not active -> Standard PMM (heuristic)      
         end
+        no_dual_update = 0;
     else
         if (num_of_pos_vars > 0)
             delta = max(reg_limit,delta*(1-0.666*mu_rate)); % Slower rate of decrease, to avoid losing centrality.       
         else
             delta = max(reg_limit,delta*0.5);               % In this case, IPM not active -> Standard PMM (heuristic)      
         end
+        no_dual_update = no_dual_update + 1;
     end
-    if (sigmamax*norm(nr_res_d) > norm(new_nr_res_d))
+    if (0.95*norm(nr_res_d) > norm(new_nr_res_d))
         zeta = x;
         if (num_of_pos_vars > 0)
             rho = max(reg_limit,rho*(1-mu_rate));     
         else
             rho = max(reg_limit,rho*0.1);                   % In this case, IPM not active -> Standard PMM (heuristic)        
         end
+        no_primal_update = 0;
     else
         if (num_of_pos_vars > 0)
             rho = max(reg_limit,rho*(1-0.666*mu_rate));     % Slower rate of decrease, to avoid losing centrality.      
         else
             rho = max(reg_limit,rho*0.5);                   % In this case, IPM not active -> Standard PMM (heuristic)    
         end
+        no_primal_update = no_primal_update + 1;
     end
     % ================================================================================================================ %
 

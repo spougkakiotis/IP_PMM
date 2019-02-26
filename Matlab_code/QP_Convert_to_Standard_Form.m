@@ -11,6 +11,8 @@ function [model, b, free_variables, objective_const_term] = QP_Convert_to_Standa
 %                              (x_C)_i >= 0, for i in C, (x_F)_i free for i in F,
 % where C in {1,...,n} is a set the indices of constrained variables and F = {1,...,n}\C, is the set of indices
 % of free variables, and n is the number of variables of the final model.
+%
+% Author: Spyridon Pougkakiotis
 % ==================================================================================================================== %
 
 % ==================================================================================================================== %
