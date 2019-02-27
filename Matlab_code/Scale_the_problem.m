@@ -28,9 +28,6 @@ function [D,D_L] = Scale_the_problem(A,scale_option,direction)
     end
     if (direction == 'l')
         A = A';
-    elseif (direction == 'b')
-        A_t = A';
-        pos_A_t = abs(A');
     end     
     pos_A = abs(A);       % Need it to identify non-zero elements.
     D = zeros(size(A,2),1);

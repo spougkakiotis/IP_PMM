@@ -16,8 +16,9 @@ scaling_direction = 'r';
 scaling_mode = 3;
 pc_mode = true;
 tol = 1e-6;
+print_mode = 1;
 %Each indice k=1..num_of_netlib_files gives the name of each netlib problem through d(i).name
-for k = 1:24
+for k = 1:1
     load(fullfile(Netlib_path,d(k).name))
    
     c = model.obj; 
@@ -49,7 +50,7 @@ for k = 1:24
     end
     time = 0;
     tic;
-    [x,y,z,opt,iter] = IP_PMM(c,A,Q,b,free_variables,tol,200,pc_mode,0); 
+    [x,y,z,opt,iter] = IP_PMM(c,A,Q,b,free_variables,tol,200,pc_mode,print_mode); 
     total_iters = total_iters + iter;
     time = time + toc;
     total_time = total_time + time;
