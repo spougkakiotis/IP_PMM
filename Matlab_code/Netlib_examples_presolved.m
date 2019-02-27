@@ -9,9 +9,9 @@ d = dir(fullfile(Netlib_path,'*.mat'));
 
 
 %Open the file to write the results
-%fileID = fopen('Netlib_presolved_tabular_format_final_results.txt','a+');
-fileID1 = fopen('LP_problems_performance_prof_time.txt','a+');
-fileID2 = fopen('LP_problems_performance_prof_iter.txt','a+');
+fileID = fopen('Netlib_presolved_tabular_format_final_results.txt','a+');
+%fileID1 = fopen('LP_problems_performance_prof_time.txt','a+');
+%fileID2 = fopen('LP_problems_performance_prof_iter.txt','a+');
 
 fields = {'A','obj','sense','rhs','lb','ub','vtype','modelname','varnames','constrnames'};
 total_iters = 0;
@@ -22,7 +22,7 @@ pc_mode = true;
 print_mode = 1;
 tol = 1e-6;
 %Each indice k=1..num_of_netlib_files gives the name of each netlib problem through d(i).name
-for k = 1:24
+for k = 24:24
     load(fullfile(Netlib_path,d(k).name))
     c = presolved_model.obj; 
     A = presolved_model.A;
@@ -60,20 +60,20 @@ for k = 1:24
     total_time = total_time + time;
     obj_val = c'*x + objective_const_term;
     if (opt == 1)
-     %  fprintf(fileID,'%s & %d & %d & opt  \n',model.modelname, iter, time); 
-     %  fprintf(fileID,'The optimal solution objective is %d.\n',obj_val);
-        fprintf(fileID1,'%d \n', time);
-        fprintf(fileID2,'%d \n', iter);
+       fprintf(fileID,'%s & %d & %d & opt  \n',model.modelname, iter, time); 
+       fprintf(fileID,'The optimal solution objective is %d.\n',obj_val);
+     %   fprintf(fileID1,'%d \n', time);
+     %   fprintf(fileID2,'%d \n', iter);
     else
-     %  fprintf(fileID,'%s & %d & %d & non-opt \n',model.modelname, iter, time); 
-        fprintf(fileID1,'inf \n');
-        fprintf(fileID2,'inf \n');
+       fprintf(fileID,'%s & %d & %d & non-opt \n',model.modelname, iter, time); 
+     %   fprintf(fileID1,'inf \n');
+     %  fprintf(fileID2,'inf \n');
     end
     
 end
-%fprintf(fileID,'The total iterates were: %d and the total time was %d\n',total_iters,total_time);
-%fclose(fileID);
-fclose(fileID1);
-fclose(fileID2);
+fprintf(fileID,'The total iterates were: %d and the total time was %d\n',total_iters,total_time);
+fclose(fileID);
+%fclose(fileID1);
+%fclose(fileID2);
 
 
