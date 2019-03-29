@@ -11,7 +11,7 @@ optimal solution was not found or an infeasibility indicator).
 
 INPUT PARAMETERS:
 
-#IP_PMM(c, A, Q, b): 
+IP_PMM(c, A, Q, b): 
 
                      find the optimal solution of the problem, with an error tolerance of 10^(-6).
                      Upon success, the method returns x (primal solution), y (Lagrange multipliers) and
@@ -19,20 +19,20 @@ INPUT PARAMETERS:
                      a certificate of infeasibility, or terminates after 100 iterations. By default, the method
                      scales the constraint matrix.
                      
-#IP_PMM(c, A, Q, b, free_variables): 
+IP_PMM(c, A, Q, b, free_variables): 
 
                       The last parameter is a matrix of indices, pointing to the free variables of the
                       problem. If not given, it is assumed that there are no free variables.
                                      
-#IP_PMM(c, A, Q, b, free_variables, tol): 
+IP_PMM(c, A, Q, b, free_variables, tol): 
 
                       This way, the user can specify the tolerance to which the problem is solved.
 
-#IP_PMM(c, A, Q, b, free_variables, tol, max_it):
+IP_PMM(c, A, Q, b, free_variables, tol, max_it):
 
                       This way, the user can also specify the maximum number of iterations.
 
-#IP_PMM(c, A, Q, b, free_variables, tol, maxit, pc):
+IP_PMM(c, A, Q, b, free_variables, tol, maxit, pc):
 
 
                       predictor-corrector option.
@@ -42,7 +42,7 @@ INPUT PARAMETERS:
                       true: Mehrotra's predictor-corrector.
                                                      
                                                      
-#IP_PMM(c, A, Q, b, free_variables, tol, max_it,pc, printlevel): 
+IP_PMM(c, A, Q, b, free_variables, tol, max_it,pc, printlevel): 
 
                       sets the printlevel.
                                                               
@@ -52,7 +52,7 @@ INPUT PARAMETERS:
                                                               
                      2: print centering parameter and step length
                                                               
-#OUTPUT: [x,y,z,opt,iter], where:
+OUTPUT: [x,y,z,opt,iter], where:
 
                      x: primal solution
          
