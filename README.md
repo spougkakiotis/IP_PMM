@@ -2,7 +2,6 @@
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
 
-  min ![img](http://latex.codecogs.com/svg.latex?%5Cbegin%7Bequation%7D%0D%0A%5Cbegin%7Bsplit%7D%0D%0A%5Cmin+c%5ET+x+%2B+%5Cfrac%7B1%7D%7B2%7Dx%5ETQx%2C%5C%5C%0D%0A%5Ctext%7Bs.t.%7D+Ax+%3D+b%0D%0A%5Cend%7Bsplit%7D%0D%0A%5Cend%7Bequation%7D)
  
                                         min   c^T x + (1/2)x^TQx  
                                         s.t.  A x = b,
