@@ -2,7 +2,7 @@
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
 ```math #label
-$ x_i = 1$ 
+$ x^i = 1$ 
 \(x_i = 1)\)
 
                                     min   c^T x + (1/2)x^TQx 
