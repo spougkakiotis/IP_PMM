@@ -50,7 +50,7 @@ IP_PMM(c, A, Q, b, free_variables, tol, max_it,pc, printlevel):
                                                               
                       1: print primal and dual residual and duality measure
                                                               
-                     2: print centering parameter and step length
+                      2: print centering parameter and step length
                                                               
 OUTPUT: [x,y,z,opt,iter], where:
 
