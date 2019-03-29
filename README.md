@@ -2,8 +2,7 @@
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
     h<sub>&theta;</sub>(x) = &theta;<sup>o</sup> x + &theta;<sub>1</sub>x
-
-                                 <p>   min   c<sup>T;</sup> x + (1/2)x<sup>T;</sup>Qx  </p>
+   min   c<sup>T;</sup> x + (1/2)x<sup>T;</sup>Qx  
                                     s.t.  A x = b,
                                           x_C &ge 0, for i &isin C &sube {1,...,n},
                                           x_F free, for i &isin F = {1,...,n}\C.
