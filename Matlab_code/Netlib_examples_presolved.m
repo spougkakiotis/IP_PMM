@@ -19,10 +19,11 @@ total_time = 0;
 scaling_direction = 'r';
 scaling_mode = 3;
 pc_mode = true;
-print_mode = 1;
+print_mode = 2;
+problems_converged = 0;
 tol = 1e-6;
 %Each indice k=1..num_of_netlib_files gives the name of each netlib problem through d(i).name
-for k = 24:24
+for k = 56:56
     load(fullfile(Netlib_path,d(k).name))
     c = presolved_model.obj; 
     A = presolved_model.A;
@@ -60,6 +61,7 @@ for k = 24:24
     total_time = total_time + time;
     obj_val = c'*x + objective_const_term;
     if (opt == 1)
+       problems_converged = problems_converged + 1;
        fprintf(fileID,'%s & %d & %d & opt  \n',model.modelname, iter, time); 
        fprintf(fileID,'The optimal solution objective is %d.\n',obj_val);
      %   fprintf(fileID1,'%d \n', time);
@@ -71,7 +73,7 @@ for k = 24:24
     end
     
 end
-fprintf(fileID,'The total iterates were: %d and the total time was %d\n',total_iters,total_time);
+fprintf(fileID,'The total iterates were: %d, the total time was: %d and %d problems converged.\n',total_iters,total_time,problems_converged);
 fclose(fileID);
 %fclose(fileID1);
 %fclose(fileID2);
