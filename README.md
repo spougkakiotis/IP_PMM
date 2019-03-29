@@ -33,6 +33,7 @@ IP_PMM(c, A, Q, b, free_variables, tol, max_it,pc, printlevel): sets the printle
                                                               1: print primal and dual residual and duality measure
                                                               2: print centering parameter and step length
 OUTPUT: [x,y,z,opt,iter], where:
+
          x: primal solution
          
          y: Lagrange multiplier vector
@@ -42,13 +43,5 @@ OUTPUT: [x,y,z,opt,iter], where:
          opt: true if problem was solved to optimality, false if problem not solved or found infeasible.
          
          iter: numeber of iterations to termination.
-         latexImg = function(latex){
-
-    link = paste0('http://latex.codecogs.com/gif.latex?',
-           gsub('\\=','%3D',URLencode(latex)))
-
-    link = gsub("(%..)","\\U\\1",link,perl=TRUE)
-    return(paste0('![](',link,')'))
-}
-
+      
 Author: Spyridon Pougkakiotis.
