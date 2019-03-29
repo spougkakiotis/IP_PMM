@@ -2,9 +2,8 @@
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
 ```math #label
-@equation(id)
-x = \sum_{i=1}{N} i
-@/
+$ x_i = 1$ 
+\(x_i = 1)\)
 
                                     min   c^T x + (1/2)x^TQx 
                                     s.t.  A x = b,
