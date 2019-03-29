@@ -1,4 +1,4 @@
-function NS = Newton_factorization(A,A_tr,Q,x,z,delta,rho,pos_vars,free_vars)
+function NS = Newton_factorization(A,A_tr,Q,x,z,delta,rho,pos_vars,free_vars,pivot_thr)
 % ==================================================================================================================== %
 % Newton_factorization: Factorize the Newton matrix
 % -------------------------------------------------------------------------------------------------------------------- %
@@ -32,8 +32,8 @@ if (size(pos_vars,1) > 0)
 else
     Q_bar(:) = rho;
 end
-K = [-Q-spdiags(Q_bar,0,n,n), A_tr; A, delta.*speye(m,m)]; 
-[NS.L,NS.D,NS.pp] = ldl(K,10^(-12),'vector'); %Small pivots allowed, to avoid 2x2 pivots.
+K = [-Q-spdiags(Q_bar,0,n,n), A_tr; A, spdiags(delta.*ones(m,1),0,m,m)]; 
+[NS.L,NS.D,NS.pp] = ldl(K,pivot_thr,'vector'); %Small pivots allowed, to avoid 2x2 pivots.
 % ==================================================================================================================== %  
  
 % ******************************************************************************************************************** %

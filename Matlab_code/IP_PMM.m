@@ -70,48 +70,44 @@ pl = printlevel;
 % regularization variables and solve the relaxed optimization problem (which has a closed form solution). Then,
 % we shift the solution, to respect the non-negativity constraints. The point is expected to be well centered.
 % -------------------------------------------------------------------------------------------------------------------- %
-A_tr = A';                                  %Store the transpose for computational efficiency.
+A_tr = A';                                  % Store the transpose for computational efficiency.
 pos_vars = setdiff((1:n)',free_variables);
 num_of_pos_vars = size(pos_vars,1);
-e_pos_vars = ones(num_of_pos_vars,1);       %Vector of ones of dimension |C|.
+e_pos_vars = ones(num_of_pos_vars,1);       % Vector of ones of dimension |C|.
 
 if (num_of_pos_vars == 0 && pc ~= false)    % Turn off Predictor-Corrector when PMM is only running.
     pc = false;
 end
 
-warn_stat = warning;
-warning('off','all');
-NE_matrix = A*A_tr; 
-x = A_tr*((NE_matrix)\(b)); 
-y = (NE_matrix)\(A*(c + Q*x));
-z = c - A_tr*y + Q*x;
-warning(warn_stat);
-if (any(isnan(x)) || any(isnan(y)) || any(isinf(x)) || any(isinf(y)) || norm(x) > 10^(14) || norm(y) > 10^(14))
-    disp("Mehrotra starting point failed. Initializing using a relatively centered point.");
-    y = zeros(m,1);
-    x = 1000.*ones(n,1);
-    z(pos_vars) = 1000.*e_pos_vars;
-    z(free_variables) = 0;
-else
-    if (norm(x) <= 10^(-4)) 
-        x = 0.01.*ones(n,1); % 0.01 is chosen arbitrarily
-    end
-
-    if (norm(z) <= 10^(-4))
-        z = 0.01.*ones(n,1); % 0.01 is chosen arbitrarily
-        z(free_variables) = zeros(n-num_of_pos_vars); %Have these variables constant to zero always!
-    end
-
-    delta_x = max(-1.5*min(x(pos_vars)),0);
-    delta_z = max(-1.5*min(z(pos_vars)), 0);
-    temp_product = (x(pos_vars) + (delta_x.*e_pos_vars))'*(z(pos_vars) + (delta_z.*e_pos_vars));
-    delta_x_bar = delta_x + (0.5*temp_product)/(sum(z(pos_vars),1)+num_of_pos_vars*delta_z);
-    delta_z_bar = delta_z + (0.5*temp_product)/(sum(x(pos_vars),1)+num_of_pos_vars*delta_x);
-
-    z(pos_vars) = z(pos_vars) + delta_z_bar.*e_pos_vars;
-    x(pos_vars) = x(pos_vars) + delta_x_bar.*e_pos_vars;
-    z(free_variables) = 0;
+% =================================================================================================================== %
+% Use PCG to solve two least-squares problems for efficiency (along with the Jacobi preconditioner). 
+% ------------------------------------------------------------------------------------------------------------------- %
+D = sum(A.^2,2) + 10;
+Jacobi_Prec = @(x) (1./D).*x;
+NE_fun = @(x) (A*(A_tr*x) + 10.*x);
+x = pcg(NE_fun,b,10^(-8),min(1000,m),Jacobi_Prec);
+x = A_tr*x;
+y = pcg(NE_fun,A*(c+Q*x),10^(-8),min(1000,m),Jacobi_Prec);
+z = c+ Q*x - A_tr*y;
+% =================================================================================================================== %
+if (norm(x(pos_vars)) <= 10^(-4)) 
+    x(pos_vars) = 0.1.*ones(num_of_pos_vars,1); % 0.1 is chosen arbitrarily
 end
+
+if (norm(z(pos_vars)) <= 10^(-4))
+    z(pos_vars) = 0.1.*ones(num_of_pos_vars,1); % 0.1 is chosen arbitrarily
+end
+
+delta_x = max(-1.5*min(x(pos_vars)),0);
+delta_z = max(-1.5*min(z(pos_vars)), 0);
+temp_product = (x(pos_vars) + (delta_x.*e_pos_vars))'*(z(pos_vars) + (delta_z.*e_pos_vars));
+delta_x_bar = delta_x + (0.5*temp_product)/(sum(z(pos_vars),1)+num_of_pos_vars*delta_z);
+delta_z_bar = delta_z + (0.5*temp_product)/(sum(x(pos_vars),1)+num_of_pos_vars*delta_x);
+
+z(pos_vars) = z(pos_vars) + delta_z_bar.*e_pos_vars;
+x(pos_vars) = x(pos_vars) + delta_x_bar.*e_pos_vars;
+z(free_variables) = 0;
+
 if (issparse(x))  x = full(x); end
 if (issparse(z))  z = full(z); end
 if (issparse(y))  y = full(y); end
@@ -152,7 +148,7 @@ lambda = y;           % Initial estimate of the Lagrange multipliers.
 zeta = x;             % Initial estimate of the primal optimal solution.
 no_dual_update = 0;   % Primal infeasibility detection counter.
 no_primal_update = 0; % Dual infeasibility detection counter.
-reg_limit = 5*10^(-12);
+reg_limit = max(5*tol*(1/max(norm(A,'inf')^2,norm(Q,'inf')^2)),5*10^(-10)); % Controlled perturbation.
 % ==================================================================================================================== %
 
 while (iter < maxit)
@@ -161,11 +157,11 @@ while (iter < maxit)
 % Until (||Ax_k - b|| < tol && ||c + Qx_k - A^Ty_k - z_k|| < tol && mu < tol) do
 %   Choose sigma in [sigma_min, sigma_max] and solve:
 %
-%      [ -(Q + Theta + rho I)   A^T       I] (Delta x)    (c + Qx_k - A^T y_k - [z_C_k; 0] + rho (x-zeta))
-%      [           A         delta I      0] (Delta y)  = (b - Ax_k - delta (y-lambda))
-%      [         Z_C             0      X_C] 
-%                                            (Delta z)    (sigma e_C - X_C Z_C e_C)
-%      [           0             0      X_F]              (           0           )
+%      [ -(Q + Theta^{-1} + rho I)   A^T            I]  (Delta x)    (c + Qx_k - A^T y_k - [z_C_k; 0] + rho (x-zeta))
+%      [           A               delta I          0]  (Delta y)    (b - Ax_k - delta (y-lambda))
+%      [         Z_C                 0            X_C]            =
+%                                                       (Delta z)    (sigma e_C - X_C Z_C e_C)
+%      [           0                 0            X_F]               (           0           )
 %
 %   where mu = x_C^Tz_C/|C|. Set (z_F)_i = 0, for all i in F.
 %   Find two step-lengths a_x, a_z in (0,1] and update:
@@ -185,28 +181,41 @@ while (iter < maxit)
     % ================================================================================================================ %
     % Check terminatio criteria
     % ---------------------------------------------------------------------------------------------------------------- %
-    if (norm(nr_res_p)/(max(m,norm(b))) < tol && norm(nr_res_d)/(max(n,norm(c))) < tol &&  mu < tol )
+    if (norm(nr_res_p)/(max(100,norm(b))) < tol && norm(nr_res_d)/(max(100,norm(c))) < tol &&  mu < tol )
         fprintf('optimal solution found\n');
         opt = 1;
         break;
     end
-    if (  (norm(y-lambda)> 10^10 && norm(res_p) < tol && no_dual_update > 5) || no_dual_update > 40 ) 
+    if ((norm(y-lambda)> 10^10 && norm(res_p) < tol && no_dual_update > 5)) 
         fprintf('The primal-dual problem is infeasible\n');
         opt = 2;
         break;
     end
-    if ( (norm(x-zeta)> 10^10 && norm(res_d) < tol && no_primal_update > 5) || no_primal_update > 40)
+    if ((norm(x-zeta)> 10^10 && norm(res_d) < tol && no_primal_update > 5))
         fprintf('The primal-dual problem is infeasible\n');
         opt = 3;
         break;
-    end 
-    
+    end
     % ================================================================================================================ %
     iter = iter+1;
     % ================================================================================================================ %
+    % Avoid the possibility of converging to a local minimum -> Decrease the minimum regularization value.
+    % ---------------------------------------------------------------------------------------------------------------- %
+    if (no_primal_update > 5 && rho == reg_limit && reg_limit ~= 5*10^(-13))
+        reg_limit = 5*10^(-13);
+        no_primal_update = 0;
+        no_dual_update = 0;
+    elseif (no_dual_update > 5 && delta == reg_limit && reg_limit ~= 5*10^(-13))
+        reg_limit = 5*10^(-13);
+        no_primal_update = 0;
+        no_dual_update = 0;
+    end
+    % ================================================================================================================ %
+    % ================================================================================================================ %
     % Compute the Newton factorization.
     % ---------------------------------------------------------------------------------------------------------------- %
-    NS = Newton_factorization(A,A_tr,Q,x,z,delta,rho,pos_vars,free_variables);
+    pivot_thr = reg_limit/5;
+    NS = Newton_factorization(A,A_tr,Q,x,z,delta,rho,pos_vars,free_variables,pivot_thr);
     % ================================================================================================================ %
     if (pc == false) % No predictor-corrector. 
         % ============================================================================================================ %
@@ -235,8 +244,7 @@ while (iter < maxit)
                 rho = rho*100;
                 iter = iter -1;
                 retry = retry + 1;
-                no_primal_update = 0;
-                no_dual_update = 0;
+                reg_limit = min(reg_limit*10,tol);
                 continue;
             else
                 fprintf('The system matrix is too ill-conditioned.\n');
@@ -262,8 +270,7 @@ while (iter < maxit)
                 rho = rho*100;
                 iter = iter -1;
                 retry_p = retry_p + 1;
-                no_primal_update = 0;
-                no_dual_update = 0;
+                reg_limit = min(reg_limit*10,tol);
                 continue;
             else
                 fprintf('The system matrix is too ill-conditioned.\n');
@@ -282,7 +289,7 @@ while (iter < maxit)
         idz(pos_vars) = dz(pos_vars) < 0;     
         alphamax_x = min([1;-x(idx)./dx(idx)]);
         alphamax_z = min([1;-z(idz)./dz(idz)]);
-        tau = max(0.995,1-mu);                        
+        tau = 0.995;
         alpha_x = tau*alphamax_x;
         alpha_z = tau*alphamax_z;
         % ============================================================================================================ %
@@ -308,8 +315,7 @@ while (iter < maxit)
                 iter = iter -1;
                 retry_c = retry_c + 1;
                 mu = mu_prev;
-                no_primal_update = 0;
-                no_dual_update = 0;
+                reg_limit = min(reg_limit*10,tol);
                 continue;
             else
                 fprintf('The system matrix is too ill-conditioned.\n');
@@ -334,18 +340,15 @@ while (iter < maxit)
         idx = false(n,1);
         idz = false(n,1);
         idx(pos_vars) = dx(pos_vars) < 0; % Select all the negative dx's (dz's respectively)
-        idz(pos_vars) = dz(pos_vars) < 0;
-
-       
+        idz(pos_vars) = dz(pos_vars) < 0;       
         alphamax_x = min([1;-x(idx)./dx(idx)]);
-        alphamax_z = min([1;-z(idz)./dz(idz)]);
-        tau = max(0.995,1-mu);                        
+        alphamax_z = min([1;-z(idz)./dz(idz)]);        
+        tau  = 0.995;
         alpha_x = tau*alphamax_x;
         alpha_z = tau*alphamax_z;
     else
         alpha_x = 1;         % If we have no inequality constraints, Newton method is exact -> Take full step.
         alpha_z = 1;
-        tau = 0.995;
     end
     % ================================================================================================================ %    
     
@@ -369,14 +372,14 @@ while (iter < maxit)
     % ---------------------------------------------------------------------------------------------------------------- %
     new_nr_res_p = b-A*x;
     new_nr_res_d = c + Q*x - A_tr*y - z;
-    if (0.95*norm(nr_res_p) > norm(new_nr_res_p))
+    cond = 0.95*norm(nr_res_p) > norm(new_nr_res_p);
+    if (cond)
         lambda = y;
         if (num_of_pos_vars > 0)
             delta = max(reg_limit,delta*(1-mu_rate));  
         else
             delta = max(reg_limit,delta*0.1);               % In this case, IPM not active -> Standard PMM (heuristic)      
         end
-        no_dual_update = 0;
     else
         if (num_of_pos_vars > 0)
             delta = max(reg_limit,delta*(1-0.666*mu_rate)); % Slower rate of decrease, to avoid losing centrality.       
@@ -385,17 +388,17 @@ while (iter < maxit)
         end
         no_dual_update = no_dual_update + 1;
     end
-    if (0.95*norm(nr_res_d) > norm(new_nr_res_d))
+    cond = 0.95*norm(nr_res_p) > norm(new_nr_res_p);
+    if (cond)
         zeta = x;
         if (num_of_pos_vars > 0)
-            rho = max(reg_limit,rho*(1-mu_rate));     
+            rho = max(reg_limit,rho*(1-mu_rate));  
         else
             rho = max(reg_limit,rho*0.1);                   % In this case, IPM not active -> Standard PMM (heuristic)        
         end
-        no_primal_update = 0;
     else
         if (num_of_pos_vars > 0)
-            rho = max(reg_limit,rho*(1-0.666*mu_rate));     % Slower rate of decrease, to avoid losing centrality.      
+            rho = max(reg_limit,rho*(1-0.666*mu_rate));     % Slower rate of decrease, to avoid losing centrality.     
         else
             rho = max(reg_limit,rho*0.5);                   % In this case, IPM not active -> Standard PMM (heuristic)    
         end
