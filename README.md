@@ -3,10 +3,10 @@ This is an Interior Point-Proximal Method of Multipliers, suitable for solving l
 programming problems. The method takes as input a problem of the following form:
     h<sub>&theta;</sub>(x) = &theta;<sup>o</sup> x + &theta;<sub>1</sub>x
 
-                                    min   c^T x + (1/2)x^TQx 
+                                    min   c<sup>T;</sup> x + (1/2)x<sup>T;</sup>Qx 
                                     s.t.  A x = b,
-                                          x_C >= 0, for i in C \subset {1,...,n},
-                                          x_F free, for i in F = {1,...,n}\C.
+                                          x_C &ge 0, for i &isin C &sube {1,...,n},
+                                          x_F free, for i &isin F = {1,...,n}\C.
 
 and solves it to optimality, returning the primal and dual optimal solutions (a message indicating that the
 optimal solution was not found or an infeasibility indicator).
@@ -15,9 +15,9 @@ INPUT PARAMETERS:
 
 IP_PMM(c, A, Q, b): 
 
-                     find the optimal solution of the problem, with an error tolerance of 10^(-6).
+                     find the optimal solution of the problem, with an error tolerance of 10<sup>(-6);</sup>
                      Upon success, the method returns x (primal solution), y (Lagrange multipliers) and
-                     z >= 0 (dual optimal slack variables). If the run was unsuccessful, the method  either returns
+                     z &ge 0 (dual optimal slack variables). If the run was unsuccessful, the method  either returns
                      a certificate of infeasibility, or terminates after 100 iterations. By default, the method
                      scales the constraint matrix.
                      
