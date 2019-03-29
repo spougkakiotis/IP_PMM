@@ -2,15 +2,11 @@
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
     
- <script type="text/javascript" async
-src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js? 
-config=TeX-MML-AM_CHTML"
-</script>
-$$x_{1,2} = \frac{-b \pm \sqrt{b^2-4ac}}{2b}.$$
-                                        min   c<sup>T;</sup> x + (1/2)x<sup>T;</sup>Qx  
-   s.t.  A x = b,
-   x_C &ge 0, for i &isin C &sube {1,...,n},
-   x_F free, for i &isin F = {1,...,n}\C.
+ 
+                                        min   c^T x + (1/2)x^TQx  
+                                        s.t.  A x = b,
+                                        x_C >= 0, for i in C, subset of {1,...,n},
+                                        x_F free, for i in F = {1,...,n}\C.
 
 and solves it to optimality, returning the primal and dual optimal solutions (a message indicating that the
 optimal solution was not found or an infeasibility indicator).
