@@ -1,7 +1,7 @@
 # IP_PMM
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
-    h<sub>&theta;</sub>(x) = &theta;<sub>o</sub> x + &theta;<sub>1</sub>x
+    h<sub>&theta;</sub>(x) = &theta;<sup>o</sup> x + &theta;<sub>1</sub>x
 
                                     min   c^T x + (1/2)x^TQx 
                                     s.t.  A x = b,
