@@ -42,6 +42,13 @@ OUTPUT: [x,y,z,opt,iter], where:
          opt: true if problem was solved to optimality, false if problem not solved or found infeasible.
          
          iter: numeber of iterations to termination.
-         
+         latexImg = function(latex){
+
+    link = paste0('http://latex.codecogs.com/gif.latex?',
+           gsub('\\=','%3D',URLencode(latex)))
+
+    link = gsub("(%..)","\\U\\1",link,perl=TRUE)
+    return(paste0('![](',link,')'))
+}
 
 Author: Spyridon Pougkakiotis.
