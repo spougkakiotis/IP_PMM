@@ -1,7 +1,7 @@
 # IP_PMM
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
-    
+                                        ![img](http://latex.codecogs.com/svg.latex?%5Cmin+c%5ET+x+%2B+%5Cfrac%7B1%7D%7B2%7Dx%5ET+Q+x)
  
                                         min   c^T x + (1/2)x^TQx  
                                         s.t.  A x = b,
