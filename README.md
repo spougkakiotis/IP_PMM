@@ -4,10 +4,10 @@ programming problems. The method takes as input a problem of the following form:
 ```math #label
 
 
-                                    min   c^T x + (1/2)x^TQx 
+                       $$             min   c^T x + (1/2)x^TQx 
                                     s.t.  A x = b,
                                           x_C >= 0, for i in C \subset {1,...,n},
-                                          x_F free, for i in F = {1,...,n}\C.
+                                          x_F free, for i in F = {1,...,n}\C.$$
 ```
 and solves it to optimality, returning the primal and dual optimal solutions (a message indicating that the
 optimal solution was not found or an infeasibility indicator).
