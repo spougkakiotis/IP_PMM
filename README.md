@@ -1,4 +1,4 @@
-# IP_PMM
+# ERGO CODE: IP_PMM
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
 
