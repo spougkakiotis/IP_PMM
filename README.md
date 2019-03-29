@@ -2,7 +2,7 @@
 This is an Interior Point-Proximal Method of Multipliers, suitable for solving linear and convex quadratic
 programming problems. The method takes as input a problem of the following form:
     
-    
+    <img src="https://latex.codecogs.com/svg.latex?\Large&space;x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}" title="\Large x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}" />
                                         min   c<sup>T;</sup> x + (1/2)x<sup>T;</sup>Qx  
    s.t.  A x = b,
    x_C &ge 0, for i &isin C &sube {1,...,n},
