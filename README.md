@@ -15,9 +15,8 @@ IP_PMM(c, A, Q, b):
 
                      find the optimal solution of the problem, with an error tolerance of 10^(-6)
                      Upon success, the method returns x (primal solution), y (Lagrange multipliers) and
-                     z >= 0 (dual optimal slack variables). If the run was unsuccessful, the method  either returns
-                     a certificate of infeasibility, or terminates after 100 iterations. By default, the method
-                     scales the constraint matrix.
+                     z  (dual optimal slack variables). If the run was unsuccessful, the method  either returns
+                     a certificate of infeasibility, or terminates after 100 iterations. 
                      
 IP_PMM(c, A, Q, b, free_variables): 
 
