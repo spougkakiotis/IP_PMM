@@ -116,38 +116,72 @@ b_new = [];
 % ==================================================================================================================== %
 % Add extra constraints to treat the upper and lower bounds on the variables.
 % -------------------------------------------------------------------------------------------------------------------- %
+g_perturbed = model.g;
 for i = 1:n % I want the initial n, since only those variables have bounds  
     if ((model.xu(i) == Inf) && (model.xl(i)> -Inf)) % We only have a lower bound 
         % In this case we implicitly substitute x_i = w_i + model.xl(i), w_i >=0
         if (model.xl(i) ~= 0)
-            b(:) = b(:) - model.A(:,i).*model.xl(i); 
-            objective_const_term = objective_const_term + model.g(i)*model.xl(i);
+        %    b(:) = b(:) - model.A(:,i).*model.xl(i); 
+        %    tmp_xl = zeros(n,1); tmp_xl(i) = model.xl(i);
+        %    g_pert = model.H*tmp_xl - (1/2).*(model.H(:,i).* tmp_xl);
+        %    g_perturbed = g_perturbed + g_pert;
+        %    tmp_vec = tmp_xl.*(model.H(:,i).*tmp_xl);
+        %    objective_const_term = objective_const_term + model.g(i)*model.xl(i) + (1/2)*(tmp_vec(i));
+            free_variables = [free_variables; i];
+            extra_constraints = extra_constraints + 1; %add one constraint, one variable
+            num_of_slacks = num_of_slacks + 1;
+            b_new = [b_new; model.xl(i)]; %The RHS of extra constraint x_i - w_i = lb_i 
+            rows = [rows; m + extra_constraints ; m + extra_constraints];
+            cols = [cols; i ; n + num_of_slacks];
+            v = [v; 1; -1]; % assigns ones in the element A(m+extra_constr,i) and A(m+extra_constr,n+num_of_slacks)  
         end      
     elseif ((model.xl(i) == -Inf) && (model.xu(i) == Inf)) % The variable is free.     
         free_variables = [free_variables; i]; % Simply keep track of them.   
     elseif ((model.xl(i) == -Inf) && (model.xu(i) < Inf)) % We only have an upper bound. 
         % In this case we implicitly substitute x_i = ub(i) - w_i, w_i >=0
-        k_max = size(cols,1);
-        for k = 1:k_max
-            if (cols(k) == i)
-                v(k) = -v(k);
-            end
-        end  
-        objective_const_term = objective_const_term + model.g(i)*model.xu(i);
-        model.g(i) = -model.g(i); 
-        if (model.xu(i) ~= 0)
-            b(:) = b(:) - model.A(:,i).*model.xu(i); 
-        end
+       % k_max = size(cols,1);
+       % for k = 1:k_max
+       %     if (cols(k) == i)
+       %         v(k) = -v(k);
+       %     end
+       % end  
+      %  objective_const_term = objective_const_term + model.g(i)*model.xu(i);
+      %  model.g(i) = -model.g(i); 
+     %   if (model.xu(i) ~= 0)
+      %      b(:) = b(:) - model.A(:,i).*model.xu(i); 
+      %  end
+        free_variables = [free_variables; i];
+        extra_constraints = extra_constraints + 1; %add one constraint, one variable
+        num_of_slacks = num_of_slacks + 1;
+        b_new = [b_new; model.xu(i)]; %The RHS of extra constraint x_i + w_i = ub_i 
+        rows = [rows; m + extra_constraints ; m + extra_constraints];
+        cols = [cols; i ; n + num_of_slacks];
+        v = [v; 1; 1]; % assigns ones in the element A(m+extra_constr,i) and A(m+extra_constr,n+num_of_slacks)  
+      
     else % We have both upper and lower bound.
         % In this case we implicitly substitute x_i = w_i + lb(i)
         if (model.xl(i) ~= 0)
-            b(:) = b(:) - model.A(:,i).*model.xl(i);
-            objective_const_term = objective_const_term + model.g(i)*model.xl(i);
+          %  b(:) = b(:) - model.A(:,i).*model.xl(i);
+         %   objective_const_term = objective_const_term + model.g(i)*model.xl(i);
+          %  objective_const_term = objective_const_term + model.g(i)*model.xl(i);
+          %  tmp_xl = zeros(n,1); tmp_xl(i) = model.xl(i);
+          %  g_pert = model.H*tmp_xl - (1/2).*(model.H(:,i).* tmp_xl);
+          %  g_perturbed = g_perturbed + g_pert;
+          %  tmp_vec = tmp_xl.*(model.H(:,i).*tmp_xl);
+          %  objective_const_term = objective_const_term + model.g(i)*model.xl(i) + (1/2)*(tmp_vec(i));
+            free_variables = [free_variables; i];
+            extra_constraints = extra_constraints + 1; %add one constraint, one variable
+            num_of_slacks = num_of_slacks + 1;
+            b_new = [b_new; model.xl(i)]; %The RHS of extra constraint x_i - w_i = lb_i 
+            rows = [rows; m + extra_constraints ; m + extra_constraints];
+            cols = [cols; i ; n + num_of_slacks];
+            v = [v; 1; -1]; % assigns ones in the element A(m+extra_constr,i) and A(m+extra_constr,n+num_of_slacks) 
         end
         
         extra_constraints = extra_constraints + 1; %add one constraint, one variable
         num_of_slacks = num_of_slacks + 1;
-        b_new = [b_new; model.xu(i) - model.xl(i)]; %The RHS of extra constraint w_i + w_i_2 = ub_i - lb_i
+       % b_new = [b_new; model.xu(i) - model.xl(i)]; %The RHS of extra constraint w_i + w_i_2 = ub_i - lb_i
+        b_new = [b_new; model.xu(i)]; %The RHS of extra constraint w_i + w_i_2 = ub_i - lb_i
         rows = [rows; m + extra_constraints ; m + extra_constraints];
         cols = [cols; i ; n + num_of_slacks];
         v = [v; 1; 1]; % assigns ones in the element A(m+extra_constr,i) and A(m+extra_constr,n+num_of_slacks)  
@@ -155,6 +189,7 @@ for i = 1:n % I want the initial n, since only those variables have bounds
 end
 % ==================================================================================================================== %
 b = [b; b_new];
+%model.g = g_perturbed;
 model.g = [model.g; zeros(num_of_slacks,1)];
 model.A = sparse(rows,cols,v,size(b,1),size(model.g,1));
 end
